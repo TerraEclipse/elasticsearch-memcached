@@ -1,0 +1,35 @@
+{
+  "name": "elasticsearch-memcached",
+  "version": "0.0.0",
+  "description": "Wraps elasticsearch with memcached transport.",
+  "main": "index.js",
+  "dependencies": {
+    "elasticsearch": "~0.3.7",
+    "memcached": "~0.2.4"
+  },
+  "devDependencies": {
+    "chai": "~1.7.2",
+    "coveralls": "~2.0.16",
+    "jscoverage": "~0.3.7",
+    "jshint": "~2.1.4",
+    "mocha": "~1.12.0",
+    "mocha-lcov-reporter": "0.0.1"
+  },
+  "scripts": {
+    "coverage": "rm -rf ./reports ; mkdir -p ./reports ; NODE_ELASTICSEARCH_COVERAGE=true mocha -R html-cov -r ./test/common.js -u bdd ./test/lib > reports/coverage.html",
+    "pretest": "jshint *.js ./lib/*.js ./test/*.js ; jscoverage ./lib ./lib-cov",
+    "test": "mocha --check-leaks -R spec -r ./test/common.js -u bdd ./test/lib",
+    "posttest": "NODE_ELASTICSEARCH_COVERAGE=true mocha -R mocha-lcov-reporter -r ./test/common.js -u bdd ./test/lib | ./node_modules/coveralls/bin/coveralls.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/cpsubrian/node-elasticsearch-memcached.git"
+  },
+  "homepage": "https://github.com/cpsubrian/node-elasticsearch-memcached",
+  "keywords": [
+    "elasticsearch",
+    "memcached"
+  ],
+  "author": "Brian Link <cpsubrian@gmail.com>",
+  "license": "MIT"
+}
