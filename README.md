@@ -1,11 +1,7 @@
 elasticsearch-memcached
 =======================
 
-Wraps elasticsearch with memcached transport.
-
-[![build status](https://secure.travis-ci.org/cpsubrian/node-elasticsearch-memcached.png)](http://travis-ci.org/cpsubrian/node-elasticsearch-memcached)
-
-&#x60;... project README above this point ...&#x60;
+Wraps [node-elasticsearch](https://github.com/ncb000gt/node-elasticsearch) with memcached protocol support.
 
 - - -
 
