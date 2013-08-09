@@ -3,6 +3,6 @@ test:
 		--reporter spec \
 		--bail \
 		--timeout 5s \
-		--require test/common.js
+		--require test/_common.js
 
 .PHONY: test
