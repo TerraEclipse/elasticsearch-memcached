@@ -16,7 +16,24 @@ describe('core', function () {
 
   it('bulkIndex');
 
-  it('count');
+  it('count', function (done) {
+    var stack = createStack(function (next) {
+      client.index({_type: 'number', _id: this}, {num: this}, next);
+    });
+    stack.add(1);
+    stack.add(2);
+    stack.add(3);
+    stack.add(4);
+    stack.add(5);
+    stack.run(function (err) {
+      assert.ifError(err);
+      client.count({_type: 'foo'}, null, function (err, result) {
+        assert.ifError(err);
+        console.log(result._shards.failures);
+        done();
+      });
+    });
+  });
 
   it('delete');
 
@@ -28,16 +45,25 @@ describe('core', function () {
 
   it('get', function (done) {
     client.index({_type: 'person', _id: 'brian'}, {name: 'Brian', color: 'blue'}, function (err, result) {
-      if (err) return done(err);
+      assert.ifError(err);
       client.get({_type: 'person', _id: 'brian'}, function (err, doc) {
-        if (err) return done(err);
+        assert.ifError(err);
         assert.equal(doc._source.name, 'Brian');
         done();
       });
     });
   });
 
-  it('index');
+  it('index', function (done) {
+    client.index({_type: 'person', _id: 'brian'}, {name: 'Brian', color: 'blue'}, function (err, result) {
+      assert.ifError(err);
+      client.get({_type: 'person', _id: 'brian'}, function (err, doc) {
+        assert.ifError(err);
+        assert.equal(doc._source.name, 'Brian');
+        done();
+      });
+    });
+  });
 
   it('moreLikeThis');
 

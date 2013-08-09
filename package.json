@@ -6,7 +6,8 @@
   "dependencies": {
     "elasticsearch": "~0.3.7",
     "memcached": "~0.2.4",
-    "request": "~2.26.0"
+    "request": "~2.26.0",
+    "stact": "0.0.11"
   },
   "devDependencies": {
     "chai": "~1.7.2",
