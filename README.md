@@ -1,7 +1,8 @@
 elasticsearch-memcached
 =======================
 
-Wraps [node-elasticsearch](https://github.com/ncb000gt/node-elasticsearch) with memcached protocol support.
+Provides a [node-elasticsearch](https://github.com/ncb000gt/node-elasticsearch)
+request agent with memcached protocol support.
 
 - - -
 

@@ -1,6 +1,7 @@
 var Memcached = require('memcached')
   , qs = require('querystring')
-  , _request = require('./request-rest');
+  , _request = require('./rest')
+  , DEFAULT_TIMEOUT = 30000;
 
 /*
   A closure that enables basic configuration of the request
@@ -8,8 +9,6 @@ var Memcached = require('memcached')
 */
 exports.initialize = function (settings, self) {
   'use strict';
-
-  return _request.initialize(settings.rest, self);
 
   self = self || {};
   self.settings = settings.memcached || {};
@@ -40,44 +39,28 @@ exports.initialize = function (settings, self) {
     In the event that an exception occurs on the request, the
     Error is captured and returned via the callback.
   */
-  function exec (options, data, callback) {
-    var method, path, req;
+  function exec (method, options, data, callback) {
+    var path, req;
 
     data = data || '';
     if (typeof data !== 'string') {
       data = JSON.stringify(data);
     }
 
-    path = options.path;
+    if (method === 'get' && data) {
+      options.query.source = data;
+    }
 
-    if (options.method === "GET") {
-      method = 'get';
-    }
-    else if (path.indexOf('_search') >= 0) {
-      method = 'get';
-    }
-    else if (options.method === "POST") {
-      method = 'set';
-    }
-    else if (options.method === "PUT") {
-      method = 'set';
-    }
-    else if (options.method === "DELETE") {
-      method = 'del';
-    }
+    options = self.getRequestOptions(options);
 
     if (method === 'get') {
-      if (data) {
-        path += (path.indexOf('?') >= 0) ? '&' : '?';
-        path += qs.stringify({source: data});
-      }
-      req = self.client.get.bind(self.client, path);
+      req = self.client.get.bind(self.client, options.path);
     }
     if (method === 'set') {
-      req = self.client.set.bind(self.client, path, data, 0);
+      req = self.client.set.bind(self.client, options.path, data, 0);
     }
     if (method === 'del') {
-      req = self.client.del.bind(self.client, path);
+      req = self.client.del.bind(self.client, options.path);
     }
 
     req(function (err, res) {
@@ -119,13 +102,29 @@ exports.initialize = function (settings, self) {
     // will not effectively be overriden for the request
     options.server.host = '127.0.0.1'
   */
-  function getRequestOptions (options) {
-    var returnOptions = self.settings;
+  self.getRequestOptions = function (options) {
+    var returnOptions = {};
+
+    Object.keys(self.settings).forEach(function (field) {
+      returnOptions[field] = self.settings[field];
+    });
     Object.keys(options).forEach(function (field) {
       returnOptions[field] = options[field];
     });
+
+    // ensure default timeout is applied if one is not supplied
+    if (typeof returnOptions.timeout === 'undefined') {
+      returnOptions.timeout = DEFAULT_TIMEOUT;
+    }
+
+    // create `path` from pathname and query.
+    returnOptions.path = returnOptions.pathname;
+    if (returnOptions.query && Object.keys(returnOptions.query).length) {
+      returnOptions.path += '?' + qs.stringify(returnOptions.query);
+    }
+
     return returnOptions;
-  }
+  };
 
   /*
     Issues a DELETE request with data (if supplied) to the server
@@ -142,29 +141,7 @@ exports.initialize = function (settings, self) {
       data = null;
     }
 
-    options.method = 'DELETE';
-    return exec(getRequestOptions(options), data, callback);
-  };
-
-  /*
-    Used to format any options NOT specified in excludes as a
-    querystring.
-
-    formatParameters({ test : true, excludeMe : 'yes', other : 'kitteh' }, ['excludeMe']);
-
-    Outputs: 'test=true&other=ktteh'
-  */
-  self.formatParameters = function (options, excludes) {
-    var params;
-
-    Object.keys(options).forEach(function (key) {
-      if (excludes.indexOf(key) === -1) {
-        params = (params || '') + key + '=' + options[key] + '&';
-        delete options[key];
-      }
-    });
-
-    return params ? params.substring(0, params.length - 1) : '';
+    return exec('del', options, data, callback);
   };
 
   /*
@@ -186,8 +163,7 @@ exports.initialize = function (settings, self) {
       data = null;
     }
 
-    options.method = 'GET';
-    return exec(getRequestOptions(options), data, callback);
+    return exec('get', options, data, callback);
   };
 
   /*
@@ -205,36 +181,24 @@ exports.initialize = function (settings, self) {
   };
 
   /*
-    Convenience method used for building path string used
-    when issuing the HTTP/HTTPS request. If the resource param
-    is undefined, empty or false an empty sting is returned.
-
-    If the input resource string has a value, it is returned
-    with a '/' prepend.
-
-    pathAppend('kitteh')
-
-    Outputs: '/kitteh'
-  */
-  self.pathAppend = function (resource) {
-    if (resource) {
-      return '/' + resource;
-    }
-
-    return '';
-  };
-
-  /*
     Issues a POST request with data (if supplied) to the server
   */
   self.post = function (options, data, callback) {
+    var method;
+
     if (!callback && typeof data === 'function') {
       callback = data;
       data = null;
     }
 
-    options.method = 'POST';
-    return exec(getRequestOptions(options), data, callback);
+    if (options.pathname.indexOf('_search') >= 0) {
+      method = 'get';
+    }
+    else {
+      method = 'set';
+    }
+
+    return exec(method, options, data, callback);
   };
 
   /*
@@ -246,8 +210,7 @@ exports.initialize = function (settings, self) {
       data = null;
     }
 
-    options.method = 'POST';
-    return exec(getRequestOptions(options), data, callback);
+    return exec('set', options, data, callback);
   };
 
   return self;

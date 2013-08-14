@@ -2,9 +2,7 @@ describe('core', function () {
   var client;
 
   before(function (done) {
-    client = createClient({
-      _index: index
-    });
+    client = elasticsearch.createClient(options);
     client.indices.createIndex(done);
   });
 
@@ -27,10 +25,17 @@ describe('core', function () {
     stack.add(5);
     stack.run(function (err) {
       assert.ifError(err);
-      client.count({_type: 'foo'}, null, function (err, result) {
+      client.indices.refresh(function (err) {
         assert.ifError(err);
-        console.log(result._shards.failures);
-        done();
+        client.count({_type: 'foo'}, null, function (err, result) {
+          assert.ifError(err);
+          assert.equal(result.count, 0);
+          client.count({_type: 'number'}, null, function (err, result) {
+            assert.ifError(err);
+            assert.equal(result.count, 5);
+            done();
+          });
+        });
       });
     });
   });

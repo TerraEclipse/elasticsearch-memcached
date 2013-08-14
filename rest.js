@@ -45,6 +45,7 @@ exports.initialize = function (settings, self) {
     Error is captured and returned via the callback.
   */
   function exec (options, data, callback) {
+    options = self.getRequestOptions(options);
     data = data || '';
     if (typeof data !== 'string') {
       data = JSON.stringify(data);
@@ -132,8 +133,12 @@ exports.initialize = function (settings, self) {
     // will not effectively be overriden for the request
     options.server.host = '127.0.0.1'
   */
-  function getRequestOptions (options) {
-    var returnOptions = self.settings;
+  self.getRequestOptions = function (options) {
+    var returnOptions = {};
+
+    Object.keys(self.settings).forEach(function (field) {
+      returnOptions[field] = self.settings[field];
+    });
     Object.keys(options).forEach(function (field) {
       returnOptions[field] = options[field];
     });
@@ -143,8 +148,14 @@ exports.initialize = function (settings, self) {
       returnOptions.timeout = DEFAULT_TIMEOUT;
     }
 
+    // create `path` from pathname and query.
+    returnOptions.path = returnOptions.pathname;
+    if (returnOptions.query && Object.keys(returnOptions.query).length) {
+      returnOptions.path += '?' + qs.stringify(returnOptions.query);
+    }
+
     return returnOptions;
-  }
+  };
 
   /*
     Issues a DELETE request with data (if supplied) to the server
@@ -162,7 +173,7 @@ exports.initialize = function (settings, self) {
     }
 
     options.method = 'DELETE';
-    return exec(getRequestOptions(options), data, callback);
+    return exec(options, data, callback);
   };
 
   /*
@@ -206,7 +217,7 @@ exports.initialize = function (settings, self) {
     }
 
     options.method = 'GET';
-    return exec(getRequestOptions(options), data, callback);
+    return exec(options, data, callback);
   };
 
   /*
@@ -226,7 +237,7 @@ exports.initialize = function (settings, self) {
     }
 
     options.method = 'HEAD';
-    return exec(getRequestOptions(options), data, callback);
+    return exec(options, data, callback);
   };
 
   /*
@@ -259,7 +270,7 @@ exports.initialize = function (settings, self) {
     }
 
     options.method = 'POST';
-    return exec(getRequestOptions(options), data, callback);
+    return exec(options, data, callback);
   };
 
   /*
@@ -272,7 +283,7 @@ exports.initialize = function (settings, self) {
     }
 
     options.method = 'PUT';
-    return exec(getRequestOptions(options), data, callback);
+    return exec(options, data, callback);
   };
 
   return self;
