@@ -40,7 +40,23 @@ describe('core', function () {
     });
   });
 
-  it('delete');
+  it('delete', function (done) {
+    client.index({_type: 'person', _id: 'joe'}, {name: 'Joe', color: 'red'}, function (err, result) {
+      assert.ifError(err);
+      client.get({_type: 'person', _id: 'joe'}, function (err, result) {
+        assert.ifError(err);
+        assert.equal(result._source.name, 'Joe');
+        client.delete({_type: 'person', _id: 'joe'}, function (err, result) {
+          assert.ifError(err);
+          client.get({_type: 'person', _id: 'joe'}, function (err, result) {
+            assert(err);
+            assert.equal(err.statusCode, 404);
+            done();
+          });
+        });
+      });
+    });
+  });
 
   it('deleteByQuery');
 
@@ -51,9 +67,9 @@ describe('core', function () {
   it('get', function (done) {
     client.index({_type: 'person', _id: 'brian'}, {name: 'Brian', color: 'blue'}, function (err, result) {
       assert.ifError(err);
-      client.get({_type: 'person', _id: 'brian'}, function (err, doc) {
+      client.get({_type: 'person', _id: 'brian'}, function (err, result) {
         assert.ifError(err);
-        assert.equal(doc._source.name, 'Brian');
+        assert.equal(result._source.name, 'Brian');
         done();
       });
     });
@@ -62,9 +78,9 @@ describe('core', function () {
   it('index', function (done) {
     client.index({_type: 'person', _id: 'brian'}, {name: 'Brian', color: 'blue'}, function (err, result) {
       assert.ifError(err);
-      client.get({_type: 'person', _id: 'brian'}, function (err, doc) {
+      client.get({_type: 'person', _id: 'brian'}, function (err, result) {
         assert.ifError(err);
-        assert.equal(doc._source.name, 'Brian');
+        assert.equal(result._source.name, 'Brian');
         done();
       });
     });
