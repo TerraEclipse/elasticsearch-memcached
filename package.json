@@ -15,7 +15,7 @@
     "jshint": "~2.1.4",
     "mocha": "~1.12.0",
     "mocha-lcov-reporter": "0.0.1",
-    "elasticsearch": "TerraEclipse/node-elasticsearch#refactor"
+    "elasticsearch": "~0.3.8"
   },
   "repository": {
     "type": "git",
