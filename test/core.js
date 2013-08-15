@@ -6,6 +6,17 @@ describe('core', function () {
     client.indices.createIndex(done);
   });
 
+  before(function (done) {
+    client.indices.putMapping({_type: 'person'}, {
+      person: {
+        properties: {
+          name: {type: 'string', store: 'yes'},
+          color: {type: 'string', store: 'yes'}
+        }
+      }
+    }, done);
+  });
+
   after(function (done) {
     client.indices.deleteIndex(done);
   });
@@ -58,9 +69,40 @@ describe('core', function () {
     });
   });
 
-  it('deleteByQuery');
+  it.skip('deleteByQuery', function (done) {
+    var stack = createStack(function (next) {
+      client.index({_type: 'person', _id: this._id}, this, next);
+    });
+    stack.add({_id: 'bill', name: 'Bill', color: 'green'});
+    stack.add({_id: 'bob', name: 'Bob', color: 'blue'});
+    stack.add({_id: 'babe', name: 'Babe', color: 'green'});
+    stack.run(function (err) {
+      assert.ifError(err);
+      client.get({_type: 'person', _id: 'bob'}, function (err, result) {
+        assert.ifError(err);
+        assert.equal(result._source.name, 'Bob');
+        client.deleteByQuery({}, {field: {color: 'green'}}, function (err, foo) {
+          assert.ifError(err);
+          client.get({_type: 'person', _id: 'bob'}, function (err, result) {
+            assert(err);
+            assert(err.statusCode, 404);
+            done();
+          });
+        });
+      });
+    });
+  });
 
-  it('exists');
+  it('exists', function (done) {
+    client.index({_type: 'person', _id: 'mary'}, {name: 'Mary', color: 'purple'}, function (err, result) {
+      assert.ifError(err);
+      client.get({_type: 'person', _id: 'mary'}, function (err, result) {
+        assert.ifError(err);
+        assert(result.exists);
+        done();
+      });
+    });
+  });
 
   it('explain');
 
