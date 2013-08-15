@@ -177,27 +177,6 @@ exports.initialize = function (settings, self) {
   };
 
   /*
-    Used to format any options NOT specified in excludes as a
-    querystring.
-
-    formatParameters({ test : true, excludeMe : 'yes', other : 'kitteh' }, ['excludeMe']);
-
-    Outputs: 'test=true&other=ktteh'
-  */
-  self.formatParameters = function (options, excludes) {
-    var params;
-
-    Object.keys(options).forEach(function (key) {
-      if (excludes.indexOf(key) === -1) {
-        params = (params || '') + key + '=' + options[key] + '&';
-        delete options[key];
-      }
-    });
-
-    return params ? params.substring(0, params.length - 1) : '';
-  };
-
-  /*
     Issues a GET request with data (if supplied) to the server
 
     Disclaimer: It's not a common practice to pass POST
@@ -238,26 +217,6 @@ exports.initialize = function (settings, self) {
 
     options.method = 'HEAD';
     return exec(options, data, callback);
-  };
-
-  /*
-    Convenience method used for building path string used
-    when issuing the HTTP/HTTPS request. If the resource param
-    is undefined, empty or false an empty sting is returned.
-
-    If the input resource string has a value, it is returned
-    with a '/' prepend.
-
-    pathAppend('kitteh')
-
-    Outputs: '/kitteh'
-  */
-  self.pathAppend = function (resource) {
-    if (resource) {
-      return '/' + resource;
-    }
-
-    return '';
   };
 
   /*
