@@ -198,7 +198,7 @@ exports.initialize = function (settings, self) {
     else if (options.pathname.match(/_query/)) {
       method = 'del';
     }
-    else if (options.pathname.match(/_search|_explain/)) {
+    else if (options.pathname.match(/_search|_msearch|_explain/)) {
       method = 'get';
     }
     else {

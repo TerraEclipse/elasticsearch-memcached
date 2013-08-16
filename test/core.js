@@ -214,7 +214,17 @@ describe('core', function () {
     });
   });
 
-  it('multiSearch');
+  it.skip('multiSearch', function (done) {
+    var queries = [
+      {query: {match: {summary: 'fish'}}},
+      {query: {match: {author: 'TJ'}}}
+    ];
+    client.multiSearch({_type: 'book'}, queries, function (err, result) {
+      assert.ifError(err);
+      console.log(result.hits);
+      done();
+    });
+  });
 
   it('percolate');
 
