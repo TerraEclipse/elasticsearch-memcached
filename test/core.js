@@ -57,7 +57,10 @@ describe('core', function () {
       author: 'Peter Kaminsky',
       summary: 'Make fishing easier and more rewarding every time you pick up your rod and reel. No one can promise that you will catch fish all the time. For as long as we\'ve been catching fish, fish have been outsmarting us. But there are tips and pointers that even the most seasoned anglers can pick up! Fishing For Dummies helps you prepare for what awaits beyond the shore. From trout to carp and bass to bonefish, you\'ll get coverage of the latest and greatest techniques to fish like a pro. The latest in fishing line and equipment technology, including new electronics and gadgets An expanded section on casting methods for spinning tackle and bait casting 8 pages of full-color fish illustrations If you\'re one of the millions of people who enjoy fishing, whether for fun or sport, this hands-on, friendly guide gives you everything you need to keep "The Big One" from getting away!'
     });
-    stack.run(done);
+    stack.run(function (err) {
+      assert.ifError(err);
+      client.indices.refresh(done);
+    });
   });
 
   after(function (done) {
@@ -212,16 +215,13 @@ describe('core', function () {
   it('registerPercolator');
 
   it('search', function (done) {
-    client.index({_type: 'person', _id: 'mary'}, {name: 'Mary', color: 'purple'}, function (err, result) {
+    client.search({_type: 'book'}, {query: {match: {summary: 'javascript'}}}, function (err, result) {
       assert.ifError(err);
-      client.indices.refresh(function (err) {
+      assert.equal(result.hits.total, 3);
+      client.search({_type: 'book'}, {query: {match: {summary: 'fish'}}}, function (err, result) {
         assert.ifError(err);
-        client.search({_type: 'person'}, {query: {term: {color: 'purple'}}}, function (err, result) {
-          assert.ifError(err);
-          assert.equal(result.hits.total, 1);
-          assert.equal(result.hits.hits[0]._source.name, 'Mary');
-          done();
-        });
+        assert.equal(result.hits.total, 1);
+        done();
       });
     });
   });
