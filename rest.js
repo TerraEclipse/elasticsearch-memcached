@@ -100,8 +100,8 @@ exports.initialize = function (settings, self) {
     return request(options, function (err, res, body) {
       if (err) return handleRequestError(err);
       if (res.statusCode >= 400) {
-        var err = new Error(body);
-        err.statusCode = statusCode;
+        var err = new Error(JSON.stringify(body));
+        err.statusCode = res.statusCode;
         return callback(err);
       }
 

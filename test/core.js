@@ -206,7 +206,13 @@ describe('core', function () {
     });
   });
 
-  it('multiGet');
+  it.skip('multiGet', function (done) {
+    client.multiGet({_type: 'book'}, [{_id: 'node1'}, {_id: 'node2'}], function (err, result) {
+      assert.ifError(err);
+      console.log(result);
+      done();
+    });
+  });
 
   it('multiSearch');
 

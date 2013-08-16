@@ -48,6 +48,7 @@ exports.initialize = function (settings, self) {
     }
 
     if (method !== 'set' && data) {
+      options.query = options.query || {};
       options.query.source = data;
     }
 
@@ -72,7 +73,7 @@ exports.initialize = function (settings, self) {
         json = JSON.parse(res);
       }
       catch (err) {
-        return callback(err);
+        return callback(new Error(res));
       }
 
       if (method === 'get' && (typeof json.exists !== 'undefined') && !json.exists) {
@@ -191,7 +192,10 @@ exports.initialize = function (settings, self) {
       data = null;
     }
 
-    if (options.pathname.match(/_query/)) {
+    if (options.pathname.match(/_mget/)) {
+      return self._request.post(options, data, callback);
+    }
+    else if (options.pathname.match(/_query/)) {
       method = 'del';
     }
     else if (options.pathname.match(/_search|_explain/)) {
