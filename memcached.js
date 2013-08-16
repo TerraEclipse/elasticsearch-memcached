@@ -191,7 +191,7 @@ exports.initialize = function (settings, self) {
       data = null;
     }
 
-    if (options.pathname.indexOf('_search') >= 0) {
+    if (options.pathname.match(/_search|_query|_explain/)) {
       method = 'get';
     }
     else {
