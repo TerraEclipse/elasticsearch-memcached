@@ -47,7 +47,7 @@ exports.initialize = function (settings, self) {
       data = JSON.stringify(data);
     }
 
-    if (method === 'get' && data) {
+    if (method !== 'set' && data) {
       options.query.source = data;
     }
 
@@ -76,7 +76,7 @@ exports.initialize = function (settings, self) {
       }
 
       if (method === 'get' && (typeof json.exists !== 'undefined') && !json.exists) {
-        e = new Error(json);
+        e = new Error('Resource could not be found');
         e.statusCode = 404;
         return callback(e);
       }
@@ -191,7 +191,10 @@ exports.initialize = function (settings, self) {
       data = null;
     }
 
-    if (options.pathname.match(/_search|_query|_explain/)) {
+    if (options.pathname.match(/_query/)) {
+      method = 'del';
+    }
+    else if (options.pathname.match(/_search|_explain/)) {
       method = 'get';
     }
     else {

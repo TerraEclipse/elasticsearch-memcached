@@ -81,7 +81,7 @@ describe('core', function () {
     });
   });
 
-  it.skip('deleteByQuery', function (done) {
+  it('deleteByQuery', function (done) {
     var stack = createStack(function (next) {
       client.index({_type: 'person', _id: this._id}, this, next);
     });
@@ -93,12 +93,22 @@ describe('core', function () {
       client.get({_type: 'person', _id: 'bob'}, function (err, result) {
         assert.ifError(err);
         assert.equal(result._source.name, 'Bob');
-        client.deleteByQuery({}, {field: {color: 'green'}}, function (err, foo) {
+        client.indices.refresh(function (err) {
           assert.ifError(err);
-          client.get({_type: 'person', _id: 'bob'}, function (err, result) {
-            assert(err);
-            assert(err.statusCode, 404);
-            done();
+          client.deleteByQuery({}, {term: {color: 'green'}}, function (err, result) {
+            assert.ifError(err);
+            client.indices.refresh(function (err) {
+              assert.ifError(err);
+              client.get({_type: 'person', _id: 'babe'}, function (err, result) {
+                assert(err);
+                assert(err.statusCode, 404);
+                client.get({_type: 'person', _id: 'bob'}, function (err, result) {
+                  assert.ifError(err);
+                  assert.equal(result._source.name, 'Bob');
+                  done();
+                });
+              });
+            });
           });
         });
       });
