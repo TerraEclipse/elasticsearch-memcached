@@ -1,4 +1,5 @@
 var
+  qs = require('querystring'),
   request = require('request'),
   DEFAULT_TIMEOUT = 30000;
 
@@ -107,7 +108,7 @@ exports.initialize = function (settings, self) {
 
       if (!body && options.method === 'HEAD') {
         body = {
-          statusCode : statusCode
+          statusCode : res.statusCode
         };
       }
 

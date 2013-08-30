@@ -60,17 +60,7 @@ exports.initialize = function (settings, self) {
 
     options = self.getRequestOptions(options);
 
-    if (method === 'get') {
-      req = self.client.get.bind(self.client, options.path);
-    }
-    if (method === 'set') {
-      req = self.client.set.bind(self.client, options.path, data, 0);
-    }
-    if (method === 'del') {
-      req = self.client.del.bind(self.client, options.path);
-    }
-
-    req(function (err, res) {
+    function handleResponse (err, res) {
       var json, e;
 
       if (err) {
@@ -86,7 +76,7 @@ exports.initialize = function (settings, self) {
 
       if (json.error) {
         e = new Error(json.error);
-        if (json.error.match(/IndexMissingException/)) {
+        if (json.error.match(/MissingException/)) {
           e.statusCode = 404;
         }
         return callback(e);
@@ -99,7 +89,17 @@ exports.initialize = function (settings, self) {
       }
 
       return callback(null, json);
-    });
+    }
+
+    if (method === 'get') {
+      req = self.client.get(options.path, handleResponse);
+    }
+    if (method === 'set') {
+      req = self.client.set(options.path, data, 0, handleResponse);
+    }
+    if (method === 'del') {
+      req = self.client.del(options.path, handleResponse);
+    }
   }
 
   /*
@@ -158,7 +158,12 @@ exports.initialize = function (settings, self) {
       data = null;
     }
 
-    return exec('del', options, data, callback);
+    if (options.pathname.split('/').length <= 2) {
+      return self._request.delete(options, data, callback);
+    }
+    else {
+      return exec('del', options, data, callback);
+    }
   };
 
   /*
@@ -208,17 +213,17 @@ exports.initialize = function (settings, self) {
       data = null;
     }
 
-    if (options.pathname.match(/_mget|_msearch|_percolate|_index/)) {
-      return self._request.post(options, data, callback);
-    }
-    else if (options.pathname.match(/_query/)) {
-      method = 'del';
+    if (options.pathname.match(/_refresh|_update|_aliases|_close|_cache|_flush|_optimize/)) {
+      method = 'set';
     }
     else if (options.pathname.match(/_search|_explain|_validate/)) {
       method = 'get';
     }
+    else if (options.pathname.match(/_query/)) {
+      method = 'del';
+    }
     else {
-      method = 'set';
+      return self._request.post(options, data, callback);
     }
 
     return exec(method, options, data, callback);
@@ -235,7 +240,9 @@ exports.initialize = function (settings, self) {
       data = null;
     }
 
-    if (options.pathname.match(/_alias|_index/)) {
+    var isCreateIndex = options.pathname.split('/').length <= 2;
+
+    if (options.pathname.match(/_alias|_warmer|_settings/) || isCreateIndex) {
       return self._request.put(options, data, callback);
     }
     else {
