@@ -11,10 +11,16 @@ exports.initialize = function (settings, self) {
   'use strict';
 
   self = self || {};
-  self.settings = settings.memcached || {};
+  self.settings = settings.memcached || {
+    host : 'localhost',
+    port : 11211
+  };
 
   // Create a REST request agent to fall back to.
-  self._request = _request.initialize(settings.rest);
+  self._request = _request.initialize(settings.rest || {
+    host: 'localhost',
+    port: 9200
+  });
 
   /*
     Set up memcached client based on settings.
@@ -67,13 +73,23 @@ exports.initialize = function (settings, self) {
     req(function (err, res) {
       var json, e;
 
-      if (err) return callback(err);
+      if (err) {
+        return callback(err);
+      }
 
       try {
         json = JSON.parse(res);
       }
       catch (err) {
         return callback(new Error(res));
+      }
+
+      if (json.error) {
+        e = new Error(json.error);
+        if (json.error.match(/IndexMissingException/)) {
+          e.statusCode = 404;
+        }
+        return callback(e);
       }
 
       if (method === 'get' && (typeof json.exists !== 'undefined') && !json.exists) {
@@ -192,13 +208,13 @@ exports.initialize = function (settings, self) {
       data = null;
     }
 
-    if (options.pathname.match(/_mget/)) {
+    if (options.pathname.match(/_mget|_msearch|_percolate|_index/)) {
       return self._request.post(options, data, callback);
     }
     else if (options.pathname.match(/_query/)) {
       method = 'del';
     }
-    else if (options.pathname.match(/_search|_msearch|_explain/)) {
+    else if (options.pathname.match(/_search|_explain|_validate/)) {
       method = 'get';
     }
     else {
@@ -212,12 +228,21 @@ exports.initialize = function (settings, self) {
     Issues a PUT request with data (if supplied) to the server
   */
   self.put = function (options, data, callback) {
+    var method;
+
     if (!callback && typeof data === 'function') {
       callback = data;
       data = null;
     }
 
-    return exec('set', options, data, callback);
+    if (options.pathname.match(/_alias|_index/)) {
+      return self._request.put(options, data, callback);
+    }
+    else {
+      method = 'set';
+    }
+
+    return exec(method, options, data, callback);
   };
 
   return self;
