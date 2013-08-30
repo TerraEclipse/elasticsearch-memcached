@@ -1,6 +1,6 @@
 {
   "name": "elasticsearch-memcached",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Wraps elasticsearch with memcached transport.",
   "main": "memcached.js",
   "dependencies": {
