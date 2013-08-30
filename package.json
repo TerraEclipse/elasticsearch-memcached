@@ -15,13 +15,13 @@
     "jshint": "~2.1.4",
     "mocha": "~1.12.0",
     "mocha-lcov-reporter": "0.0.1",
-    "elasticsearch": "~0.3.8"
+    "elasticsearch": "~0.3.10"
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/cpsubrian/node-elasticsearch-memcached.git"
+    "url": "git://github.com/TerraEclipse/node-elasticsearch-memcached.git"
   },
-  "homepage": "https://github.com/cpsubrian/node-elasticsearch-memcached",
+  "homepage": "https://github.com/TerraEClipse/node-elasticsearch-memcached",
   "keywords": [
     "elasticsearch",
     "memcached"
